@@ -22,6 +22,7 @@ namespace conversion
 
             context.Add(new Derived1() { PropertyWithSharedBackingColumn = 1 });
             context.Add(new Derived2() { PropertyWithSharedBackingColumn = 2 });
+            context.Add(new Derived3() { PropertyWithSharedBackingColumn = "3" });
             context.SaveChanges();
 
             List<Base> results = new TestDbContext(options).Entities.ToList();
@@ -43,7 +44,8 @@ namespace conversion
             builder.Entity<Base>()
                 .HasDiscriminator(e => e.Type)
                 .HasValue<Derived1>(1)
-                .HasValue<Derived2>(2);
+                .HasValue<Derived2>(2)
+                .HasValue<Derived3>(3);
 
 
             builder.Entity<Derived1>()
@@ -61,6 +63,14 @@ namespace conversion
                 .HasConversion(
                     i => "2",
                     stored => 2);
+
+            builder.Entity<Derived3>()
+                .HasBaseType<Base>()
+                .Property(e => e.PropertyWithSharedBackingColumn)
+                .HasColumnName("SharedColumn")
+                .HasConversion(
+                    i => "3",
+                    stored => "3");
 
         }
 
@@ -99,6 +109,22 @@ namespace conversion
         }
 
         public int PropertyWithSharedBackingColumn { get; set; }
+
+        public override string ToString()
+        {
+            return $"Id={Id} Type={Type} SharedColumnValue={PropertyWithSharedBackingColumn}";
+        }
+    }
+    public class Derived3 : Base
+    {
+
+        public override int Type
+        {
+            get => 3;
+            set { }
+        }
+
+        public string PropertyWithSharedBackingColumn { get; set; }
 
         public override string ToString()
         {
